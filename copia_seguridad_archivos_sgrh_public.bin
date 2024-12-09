@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Inicia el cronómetro
+START_TIME=$(date +%s)
+
+# Variables
+LARAVEL_FILES_PATH="/home/ubuntu/sgrh/storage/app/public"
+BACKUP_PATH="/home/ubuntu/backups"
+
+# Nombre de la carpeta donde se copiaran los archivos
+CURRENT_DATE=$(date +"%Y-%m-%d_%H-%M-%S")
+BACKUP_FOLDER="$BACKUP_PATH/SGRH_FILES_SECURITY_COPY_$CURRENT_DATE"
+
+
+# VALIDANDO QUE EL DIRECTORIO A COPIAR EXISTA
+if [ ! -d "$LARAVEL_FILES_PATH" ]; then
+  echo "El path no existe: $LARAVEL_FILES_PATH"
+  exit 1
+fi
+
+# VALIDANDO QUE EL PATH DE RESPALDO EXISTA
+if [ ! -d "$BACKUP_PATH" ]; then
+  echo "Path de respaldo no encontrado, creando path"
+  mkdir -p "$BACKUP_PATH"
+fi 
+
+
+# COPIA LOS ARCHIVO A LA CARPETA BACKUP DE MANERA RECURSIVA
+cp -r "$LARAVEL_FILES_PATH" "$BACKUP_FOLDER"
+
+cd "$BACKUP_PATH"
+
+# MANDANDO LA CARPETA A REPOSITORIO DE GIT
+if [ ! -d ".git" ]; then
+  echo "Inicializando repositorio Git..."
+  git init
+  git remote add origin git@github.com-sgrh:Khey2/SGRH_FILES_COPY.git
+fi
+
+git branch -M main
+git add .
+git commit -m "Respaldo creado el $CURRENT_DATE"
+git push origin main
+
+
+# Finaliza el cronómetro
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+
+
+echo "Respaldo creado en: $BACKUP_FOLDER y enviado al repositorio git (Tiempo total: $DURATION Segundos. )"
+
+
+
+
